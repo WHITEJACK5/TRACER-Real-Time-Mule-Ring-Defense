@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 import path from "node:path";
 
-/** Vitest config — jsdom environment for component tests, `@/` path alias. */
+/** Vitest config - jsdom environment for component tests, `@/` path alias. */
 export default defineConfig({
   esbuild: {
     jsx: "automatic",
