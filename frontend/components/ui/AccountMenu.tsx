@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Accessibility, Bell, LogOut, Palette, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLiveFeed } from "@/hooks/useLiveFeed";
+import { useStoredValue, writeStoredValue } from "@/hooks/useStoredValue";
 
 type Item =
   | { label: string; icon: typeof User; href: string }
@@ -23,13 +25,10 @@ export default function AccountMenu() {
   const ref = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const { alerts } = useLiveFeed();
-  const [profileEmail, setProfileEmail] = useState<string>("analyst@razorpay.com");
-
-  useEffect(() => {
-    try { setProfileEmail(localStorage.getItem("tracer.session.email") || "analyst@razorpay.com"); } catch {}
-  }, [open, showProfile]);
+  const profileEmail = useStoredValue("tracer.session.email", "analyst@razorpay.com");
 
   useEffect(() => {
     if (!open && !showNotifications && !showProfile) return;
@@ -80,11 +79,9 @@ export default function AccountMenu() {
     label: "Sign out",
     icon: LogOut,
     onSelect: () => {
-      try {
-        localStorage.removeItem("tracer.session");
-        localStorage.removeItem("tracer.session.email");
-      } catch {}
-      window.location.href = "/login";
+      writeStoredValue("tracer.session", null);
+      writeStoredValue("tracer.session.email", null);
+      router.push("/login");
     },
   };
 

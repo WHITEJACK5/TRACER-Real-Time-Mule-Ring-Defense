@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAnalysts } from "@/hooks/useApi";
 import AvatarList from "@/components/ui/AvatarList";
 import { Input } from "@/components/ui/Input";
@@ -8,6 +8,7 @@ import ErrorState from "@/components/ui/ErrorState";
 import Loader from "@/components/ui/Loader";
 import Button from "@/components/ui/Button";
 import TextReveal from "@/components/ui/TextReveal";
+import { useStoredValue } from "@/hooks/useStoredValue";
 import dynamic from "next/dynamic";
 
 const GraphCanvas = dynamic(() => import("@/components/GraphCanvas"), {
@@ -26,23 +27,17 @@ export default function GraphPage() {
   const [override, setOverride] = useState("");
   const [active, setActive] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
-  const [sessions, setSessions] = useState<BurstSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<string>("live");
-
-  useEffect(() => {
+  const storedSessions = useStoredValue("tracer.burstSessions", "");
+  const sessions = useMemo<BurstSession[]>(() => {
+    if (!storedSessions) return [];
     try {
-      const raw = localStorage.getItem("tracer.burstSessions");
-      if (raw) setSessions(JSON.parse(raw));
-    } catch {}
-    const onStorage = () => {
-      try { const r = localStorage.getItem("tracer.burstSessions"); if (r) setSessions(JSON.parse(r)); } catch {}
-    };
-    window.addEventListener("storage", onStorage);
-    const iv = setInterval(() => {
-      try { const r = localStorage.getItem("tracer.burstSessions"); if (r) setSessions(JSON.parse(r)); } catch {}
-    }, 2000);
-    return () => { window.removeEventListener("storage", onStorage); clearInterval(iv); };
-  }, [refresh]);
+      const parsed = JSON.parse(storedSessions);
+      return Array.isArray(parsed) ? (parsed as BurstSession[]) : [];
+    } catch {
+      return [];
+    }
+  }, [storedSessions]);
 
   const center = (() => {
     if (override) return override;

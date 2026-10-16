@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import Loader from "@/components/ui/Loader";
+import { useStoredValue } from "@/hooks/useStoredValue";
 
 const LINKS = [
   { href: "/dashboard", label: "Overview" },
@@ -22,19 +23,13 @@ const LINKS = [
  */
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [authed, setAuthed] = useState<boolean | null>(null);
+  const session = useStoredValue("tracer.session", "");
 
   useEffect(() => {
-    try {
-      const ok = !!localStorage.getItem("tracer.session");
-      if (!ok) router.replace("/login");
-      else setAuthed(true);
-    } catch {
-      setAuthed(true);
-    }
-  }, [router]);
+    if (!session) router.replace("/login");
+  }, [session, router]);
 
-  if (authed !== true) {
+  if (!session) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg-primary">
         <Loader label="checking session…" />

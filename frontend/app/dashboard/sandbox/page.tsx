@@ -11,6 +11,7 @@ import Loader from "@/components/ui/Loader";
 import TextReveal from "@/components/ui/TextReveal";
 import type { RiskEvaluation, Preset } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { writeStoredValue } from "@/hooks/useStoredValue";
 
 const BUILTIN_PRESETS: Preset[] = [
   {
@@ -163,11 +164,11 @@ export default function SandboxPage() {
     if (result.dispute_dossier) {
       lines.push(`[DOSSIER] ${result.dispute_dossier.title} (${result.dispute_dossier.generated_by})`);
     }
-    setTypedLines([]);
     let i = 0;
     const id = setInterval(() => {
       if (i >= lines.length) { clearInterval(id); return; }
-      setTypedLines((prev) => [...prev, lines[i]]);
+      const line = lines[i];
+      setTypedLines((prev) => (i === 0 ? [line] : [...prev, line]));
       i++;
     }, 180);
     return () => clearInterval(id);
@@ -327,7 +328,7 @@ export default function SandboxPage() {
     try {
       const sessions = JSON.parse(localStorage.getItem("tracer.burstSessions") || "[]");
       sessions.unshift({ id: String(burstId), ts: Date.now(), total, high, medium, low, muleDevices });
-      localStorage.setItem("tracer.burstSessions", JSON.stringify(sessions.slice(0, 12)));
+      writeStoredValue("tracer.burstSessions", JSON.stringify(sessions.slice(0, 12)));
     } catch {}
     // Final sync system-wide
     qc.invalidateQueries({ queryKey: queryKeys.ledgerStats });

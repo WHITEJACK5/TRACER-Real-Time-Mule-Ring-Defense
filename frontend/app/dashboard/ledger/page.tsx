@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useLedger, useLedgerStats } from "@/hooks/useApi";
 import { useLiveFeed } from "@/hooks/useLiveFeed";
 import ErrorState from "@/components/ui/ErrorState";
@@ -28,24 +28,19 @@ ${recent || "- No recent entries recorded"}`;
 
 export default function LedgerPage() {
   const { data: stats, isError: statsError, error: statsErr, refetch: refetchStats } = useLedgerStats();
-  const { data: rows, isLoading, isError, error, refetch } = useLedger(120);
+  const { data: rows, isLoading, isError, error, refetch, dataUpdatedAt } = useLedger(120);
   const { alerts } = useLiveFeed();
-  const [lastSync, setLastSync] = useState<string>("");
   const safeRows = Array.isArray(rows) ? rows : [];
   const report = buildReport(stats, safeRows);
+  const lastSync = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : "";
 
   // Fully sync ledger to every transaction system-wide
   useEffect(() => {
     if (alerts.length > 0) {
       refetch();
       refetchStats();
-      setLastSync(new Date().toLocaleTimeString());
     }
   }, [alerts.length, refetch, refetchStats]);
-
-  useEffect(() => {
-    if (safeRows.length > 0) setLastSync(new Date().toLocaleTimeString());
-  }, [safeRows.length]);
 
   return (
     <div className="flex flex-col gap-6">

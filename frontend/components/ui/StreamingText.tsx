@@ -28,26 +28,20 @@ export default function StreamingText({
   onDone?: () => void;
 }) {
   const reduced = useReducedMotion();
-  const [count, setCount] = useState(reduced ? text.length : 0);
-  const [cursorFaded, setCursorFaded] = useState(false);
+  const [anim, setAnim] = useState({ text: "", count: 0, faded: false });
   const doneRef = useRef(false);
 
   useEffect(() => {
-    if (reduced) {
-      setCount(text.length);
-      return;
-    }
-    setCount(0);
-    setCursorFaded(false);
+    if (reduced) return;
     doneRef.current = false;
     let i = 0;
     const id = setInterval(() => {
       i += 1;
-      setCount(i);
+      setAnim({ text, count: i, faded: false });
       if (i >= text.length) {
         clearInterval(id);
         setTimeout(() => {
-          setCursorFaded(true);
+          setAnim((prev) => ({ ...prev, faded: true }));
           if (!doneRef.current) {
             doneRef.current = true;
             onDone?.();
@@ -59,6 +53,8 @@ export default function StreamingText({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, speed, reduced]);
 
+  const count = reduced ? text.length : anim.text === text ? anim.count : 0;
+  const cursorFaded = reduced ? true : anim.text === text ? anim.faded : false;
   const shown = text.slice(0, count);
 
   return (

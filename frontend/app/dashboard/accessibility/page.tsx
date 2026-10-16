@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import TextReveal from "@/components/ui/TextReveal";
+import { useStoredValue, writeStoredValue } from "@/hooks/useStoredValue";
 
 function applyFontScale(v: string) {
   document.documentElement.style.fontSize = v === "100" ? "" : `${v}%`;
@@ -44,43 +45,40 @@ function applyLargeClick(on: boolean) {
 }
 
 export default function AccessibilityPage() {
-  const [fontScale, setFontScale] = useState("100");
-  const [highContrast, setHighContrast] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const [largeClick, setLargeClick] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
+  const storedFontScale = useStoredValue("tracer.a11y.fontScale", "100");
+  const storedHighContrast = useStoredValue("tracer.a11y.highContrast", "0");
+  const storedReduceMotion = useStoredValue("tracer.a11y.reduceMotion", "0");
+  const storedLargeClick = useStoredValue("tracer.a11y.largeClick", "0");
+  const [fontScaleDraft, setFontScaleDraft] = useState<string | null>(null);
+  const [highContrastDraft, setHighContrastDraft] = useState<boolean | null>(null);
+  const [reduceMotionDraft, setReduceMotionDraft] = useState<boolean | null>(null);
+  const [largeClickDraft, setLargeClickDraft] = useState<boolean | null>(null);
+  const fontScale = fontScaleDraft ?? storedFontScale;
+  const highContrast = highContrastDraft ?? storedHighContrast === "1";
+  const reduceMotion = reduceMotionDraft ?? storedReduceMotion === "1";
+  const largeClick = largeClickDraft ?? storedLargeClick === "1";
 
-  useEffect(() => {
-    setHasMounted(true);
-    const fs = localStorage.getItem("tracer.a11y.fontScale") ?? "100";
-    const hc = localStorage.getItem("tracer.a11y.highContrast") === "1";
-    const rm = localStorage.getItem("tracer.a11y.reduceMotion") === "1";
-    const lc = localStorage.getItem("tracer.a11y.largeClick") === "1";
-    setFontScale(fs); setHighContrast(hc); setReduceMotion(rm); setLargeClick(lc);
-    applyFontScale(fs); applyHighContrast(hc); applyReduceMotion(rm); applyLargeClick(lc);
-  }, []);
-
-  // Live preview for font scale and toggles
-  useEffect(() => { if (hasMounted) applyFontScale(fontScale); }, [fontScale, hasMounted]);
-  useEffect(() => { if (hasMounted) applyHighContrast(highContrast); }, [highContrast, hasMounted]);
-  useEffect(() => { if (hasMounted) applyReduceMotion(reduceMotion); }, [reduceMotion, hasMounted]);
-  useEffect(() => { if (hasMounted) applyLargeClick(largeClick); }, [largeClick, hasMounted]);
+  // Live preview — applies the effective values whenever they change
+  useEffect(() => { applyFontScale(fontScale); }, [fontScale]);
+  useEffect(() => { applyHighContrast(highContrast); }, [highContrast]);
+  useEffect(() => { applyReduceMotion(reduceMotion); }, [reduceMotion]);
+  useEffect(() => { applyLargeClick(largeClick); }, [largeClick]);
 
   function save() {
-    localStorage.setItem("tracer.a11y.fontScale", fontScale);
-    localStorage.setItem("tracer.a11y.highContrast", highContrast ? "1" : "0");
-    localStorage.setItem("tracer.a11y.reduceMotion", reduceMotion ? "1" : "0");
-    localStorage.setItem("tracer.a11y.largeClick", largeClick ? "1" : "0");
+    writeStoredValue("tracer.a11y.fontScale", fontScale);
+    writeStoredValue("tracer.a11y.highContrast", highContrast ? "1" : "0");
+    writeStoredValue("tracer.a11y.reduceMotion", reduceMotion ? "1" : "0");
+    writeStoredValue("tracer.a11y.largeClick", largeClick ? "1" : "0");
+    setFontScaleDraft(null); setHighContrastDraft(null); setReduceMotionDraft(null); setLargeClickDraft(null);
     toast.success("Accessibility saved", { description: `Font ${fontScale}% · ${highContrast ? "High contrast ON" : "High contrast OFF"} · ${reduceMotion ? "Motion reduced" : "Motion ON"} · ${largeClick ? "Large targets ON" : "Standard targets"}` });
   }
 
   function reset() {
-    setFontScale("100"); setHighContrast(false); setReduceMotion(false); setLargeClick(false);
-    localStorage.removeItem("tracer.a11y.fontScale");
-    localStorage.removeItem("tracer.a11y.highContrast");
-    localStorage.removeItem("tracer.a11y.reduceMotion");
-    localStorage.removeItem("tracer.a11y.largeClick");
-    applyFontScale("100"); applyHighContrast(false); applyReduceMotion(false); applyLargeClick(false);
+    setFontScaleDraft(null); setHighContrastDraft(null); setReduceMotionDraft(null); setLargeClickDraft(null);
+    writeStoredValue("tracer.a11y.fontScale", null);
+    writeStoredValue("tracer.a11y.highContrast", null);
+    writeStoredValue("tracer.a11y.reduceMotion", null);
+    writeStoredValue("tracer.a11y.largeClick", null);
     toast.success("Accessibility reset", { description: "All preferences restored to defaults" });
   }
 
@@ -95,7 +93,7 @@ export default function AccessibilityPage() {
           <div className="flex items-center gap-3">
             <input
               type="range" min={85} max={130} step={5} value={fontScale}
-              onChange={(e) => setFontScale(e.target.value)}
+              onChange={(e) => setFontScaleDraft(e.target.value)}
               className="flex-1 accent-accent h-2 cursor-pointer appearance-none rounded-full bg-bg-tertiary"
             />
             <span className="w-14 rounded-md border border-border bg-bg-tertiary px-2 py-1.5 text-center font-mono text-sm font-bold text-accent">{fontScale}%</span>
@@ -108,17 +106,17 @@ export default function AccessibilityPage() {
 
         <label className="flex cursor-pointer items-center justify-between rounded-md border border-border bg-bg-primary/40 px-4 py-3 transition-colors hover:border-accent/50">
           <div><p className="font-mono text-sm font-medium text-text-primary">High contrast</p><p className="font-mono text-xs text-text-muted">Boost borders and text contrast for low-vision · {highContrast ? "ON" : "OFF"}</p></div>
-          <input type="checkbox" checked={highContrast} onChange={(e) => setHighContrast(e.target.checked)} className="h-5 w-5 accent-accent rounded" />
+          <input type="checkbox" checked={highContrast} onChange={(e) => setHighContrastDraft(e.target.checked)} className="h-5 w-5 accent-accent rounded" />
         </label>
 
         <label className="flex cursor-pointer items-center justify-between rounded-md border border-border bg-bg-primary/40 px-4 py-3 transition-colors hover:border-accent/50">
           <div><p className="font-mono text-sm font-medium text-text-primary">Reduce motion</p><p className="font-mono text-xs text-text-muted">Disable glow, pulse and slide animations · {reduceMotion ? "ON" : "OFF"}</p></div>
-          <input type="checkbox" checked={reduceMotion} onChange={(e) => setReduceMotion(e.target.checked)} className="h-5 w-5 accent-accent rounded" />
+          <input type="checkbox" checked={reduceMotion} onChange={(e) => setReduceMotionDraft(e.target.checked)} className="h-5 w-5 accent-accent rounded" />
         </label>
 
         <label className="flex cursor-pointer items-center justify-between rounded-md border border-border bg-bg-primary/40 px-4 py-3 transition-colors hover:border-accent/50">
           <div><p className="font-mono text-sm font-medium text-text-primary">Large click targets</p><p className="font-mono text-xs text-text-muted">Increase button and chip padding for easier clicking · {largeClick ? "ON" : "OFF"}</p></div>
-          <input type="checkbox" checked={largeClick} onChange={(e) => setLargeClick(e.target.checked)} className="h-5 w-5 accent-accent rounded" />
+          <input type="checkbox" checked={largeClick} onChange={(e) => setLargeClickDraft(e.target.checked)} className="h-5 w-5 accent-accent rounded" />
         </label>
 
         <div className="flex gap-3 pt-2">

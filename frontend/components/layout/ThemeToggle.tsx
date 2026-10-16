@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useHydrated } from "@/hooks/useStoredValue";
 
 /**
  * Pill toggle switch (adapted from a Uiverse.io CSS toggle, recolored onto
@@ -11,8 +11,7 @@ import { useEffect, useState } from "react";
  */
 export default function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
   const isDark = mounted ? resolvedTheme === "dark" : true;
 
   return (

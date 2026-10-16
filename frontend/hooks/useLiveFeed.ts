@@ -82,7 +82,6 @@ export function useLiveFeed(intervalMs = 4000, max = 60): {
       if (esRef.current) esRef.current.close();
       if (pollTimer) clearInterval(pollTimer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [intervalMs, max]);
 
   return { alerts, connected };

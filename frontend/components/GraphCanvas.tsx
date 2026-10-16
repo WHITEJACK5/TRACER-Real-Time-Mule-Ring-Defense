@@ -127,24 +127,27 @@ export default function GraphCanvas({ center, refreshToken, session }: { center?
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, panX: 0, panY: 0 });
 
   const svgRef = useRef<SVGSVGElement>(null);
+  const lastCenterRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     let alive = true;
-    setError(null);
     const cid = center && !center.includes(":") ? `device:${center}` : center ?? undefined;
     const sid = session && session !== "live" ? session : undefined;
     fetchTopology(cid, sid)
-      .then((d) => alive && setData(d))
+      .then((d) => {
+        if (!alive) return;
+        setData(d);
+        setError(null);
+        if (lastCenterRef.current !== d.center) {
+          lastCenterRef.current = d.center;
+          setZoom(1);
+          setPan({ x: 0, y: 0 });
+          setSelected(null);
+        }
+      })
       .catch((e) => alive && setError(String(e)));
     return () => { alive = false; };
   }, [center, refreshToken, retryTick, session]);
-
-  // Reset view on new data
-  useEffect(() => {
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-    setSelected(null);
-  }, [data?.center]);
 
   const layout = useMemo(() => (data && data.nodes.length > 0 ? computeLayout(data.nodes, data.edges) : null), [data]);
   const neighbors = useMemo(() => {

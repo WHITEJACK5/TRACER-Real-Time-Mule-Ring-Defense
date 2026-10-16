@@ -1,18 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLedgerStats } from "@/hooks/useApi";
 import TextReveal from "@/components/ui/TextReveal";
 import Loader from "@/components/ui/Loader";
+import { useStoredValue } from "@/hooks/useStoredValue";
 
 export default function ProfilePage() {
-  const [email, setEmail] = useState("analyst@razorpay.com");
+  const email = useStoredValue("tracer.session.email", "analyst@razorpay.com");
+  const session = useStoredValue("tracer.session", "");
   const { data: stats, isLoading, isError, refetch } = useLedgerStats();
-
-  useEffect(() => {
-    try { setEmail(localStorage.getItem("tracer.session.email") || "analyst@razorpay.com"); } catch {}
-  }, []);
 
   const name = email.split("@")[0].split(/[._-]/).map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ") || "Analyst";
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "AR";
@@ -81,7 +78,7 @@ export default function ProfilePage() {
               <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-text-muted">Activity</h3>
               <div className="mt-3 space-y-2 font-mono text-sm">
                 <div className="flex justify-between"><span className="text-text-muted">Last login</span><span className="text-text-primary">{new Date().toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-text-muted">Session</span><span className="text-accent">Active · {typeof window !== "undefined" && localStorage.getItem("tracer.session") ? "Valid" : "Demo"}</span></div>
+                <div className="flex justify-between"><span className="text-text-muted">Session</span><span className="text-accent">Active · {session ? "Valid" : "Demo"}</span></div>
                 <div className="flex justify-between"><span className="text-text-muted">Graph</span><span className="text-text-primary">Mule-ring topology · live</span></div>
               </div>
             </div>

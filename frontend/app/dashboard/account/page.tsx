@@ -1,33 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import TextReveal from "@/components/ui/TextReveal";
 import { Input } from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { useStoredValue, writeStoredValue } from "@/hooks/useStoredValue";
+
+function displayNameFrom(email: string) {
+  return email.split("@")[0].split(/[._-]/).map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ") || "Analyst";
+}
 
 export default function AccountPage() {
-  const [email, setEmail] = useState("analyst@razorpay.com");
-  const [name, setName] = useState("Analyst");
-
-  useEffect(() => {
-    try {
-      const e = localStorage.getItem("tracer.session.email") || "analyst@razorpay.com";
-      setEmail(e);
-      setName(e.split("@")[0].split(/[._-]/).map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ") || "Analyst");
-    } catch {}
-  }, []);
+  const router = useRouter();
+  const storedEmail = useStoredValue("tracer.session.email", "analyst@razorpay.com");
+  const [emailDraft, setEmailDraft] = useState<string | null>(null);
+  const [nameDraft, setNameDraft] = useState<string | null>(null);
+  const email = emailDraft ?? storedEmail;
+  const name = nameDraft ?? displayNameFrom(storedEmail);
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
     const fd = new FormData(e.target as HTMLFormElement);
     const newEmail = String(fd.get("email") ?? "").trim();
     const newName = String(fd.get("name") ?? "").trim();
-    if (newEmail) {
-      try { localStorage.setItem("tracer.session.email", newEmail); } catch {}
-      setEmail(newEmail);
-    }
-    if (newName) setName(newName);
+    if (newEmail) writeStoredValue("tracer.session.email", newEmail);
+    if (newName) setNameDraft(newName);
+    setEmailDraft(null);
     toast.success("Account updated", { description: `${newName || name} · ${newEmail || email}` });
   }
 
@@ -38,8 +38,9 @@ export default function AccountPage() {
   }
 
   function handleSignOut() {
-    try { localStorage.removeItem("tracer.session"); localStorage.removeItem("tracer.session.email"); } catch {}
-    window.location.href = "/login";
+    writeStoredValue("tracer.session", null);
+    writeStoredValue("tracer.session.email", null);
+    router.push("/login");
   }
 
   function handleExport() {
@@ -58,7 +59,7 @@ export default function AccountPage() {
       <p className="text-sm text-text-secondary">Manage your TRACER analyst account — all changes persist in localStorage and sync instantly.</p>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <form onSubmit={handleSave} className="glass flex flex-col gap-4 p-6">
+        <form key={`${storedEmail}|${name}`} onSubmit={handleSave} className="glass flex flex-col gap-4 p-6">
           <h3 className="font-sans text-lg font-bold text-text-primary">Profile</h3>
           <Input label="Display name" name="name" defaultValue={name} placeholder="Analyst Name" />
           <Input label="Work email" name="email" type="email" defaultValue={email} placeholder="analyst@razorpay.com" />

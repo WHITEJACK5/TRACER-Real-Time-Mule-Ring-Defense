@@ -18,20 +18,16 @@ export default function Header({
   links?: { href: string; label: string }[];
 }) {
   const pathname = usePathname();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [openForPath, setOpenForPath] = useState<string | null>(null);
+  const drawerOpen = openForPath === pathname;
   const drawerRef = useRef<HTMLDivElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
-
-  // Close drawer on route change
-  useEffect(() => {
-    setDrawerOpen(false);
-  }, [pathname]);
 
   // Close drawer on Escape
   useEffect(() => {
     if (!drawerOpen) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDrawerOpen(false);
+      if (e.key === "Escape") setOpenForPath(null);
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
@@ -91,7 +87,7 @@ export default function Header({
           </div>
 
           {/* Hamburger — visible below md */}
-          <MenuButton open={drawerOpen} onClick={() => setDrawerOpen(!drawerOpen)} />
+          <MenuButton open={drawerOpen} onClick={() => setOpenForPath((cur) => (cur === pathname ? null : pathname))} />
         </div>
       </header>
 
@@ -99,7 +95,7 @@ export default function Header({
       {drawerOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/40 md:hidden"
-          onClick={() => setDrawerOpen(false)}
+          onClick={() => setOpenForPath(null)}
           aria-hidden="true"
         />
       )}
@@ -117,7 +113,7 @@ export default function Header({
           <span className="text-sm font-semibold text-text-primary">Navigation</span>
           <button
             className="rounded p-1 text-text-secondary hover:bg-bg-tertiary"
-            onClick={() => setDrawerOpen(false)}
+            onClick={() => setOpenForPath(null)}
             aria-label="Close menu"
           >
             <X size={18} />
@@ -145,7 +141,7 @@ export default function Header({
           })}
           <Link
             href="/login"
-            onClick={() => setDrawerOpen(false)}
+            onClick={() => setOpenForPath(null)}
             className="mt-3 flex items-center gap-3 rounded-md border border-border px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
             aria-label="Sign in"
           >
