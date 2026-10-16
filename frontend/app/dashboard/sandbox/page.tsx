@@ -142,9 +142,11 @@ export default function SandboxPage() {
   const [typedLines, setTypedLines] = useState<string[]>([]);
 
   useEffect(() => {
+    const ringInterval = ringIntervalRef;
+    const burst = burstRef.current;
     return () => {
-      if (ringIntervalRef.current) clearInterval(ringIntervalRef.current);
-      burstRef.current.cancelled = true;
+      if (ringInterval.current) clearInterval(ringInterval.current);
+      burst.cancelled = true;
     };
   }, []);
 

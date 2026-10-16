@@ -5,11 +5,10 @@ import Link from "next/link";
 import { useLedgerStats } from "@/hooks/useApi";
 import TextReveal from "@/components/ui/TextReveal";
 import Loader from "@/components/ui/Loader";
-import ErrorState from "@/components/ui/ErrorState";
 
 export default function ProfilePage() {
   const [email, setEmail] = useState("analyst@razorpay.com");
-  const { data: stats, isLoading, isError, error, refetch } = useLedgerStats();
+  const { data: stats, isLoading, isError, refetch } = useLedgerStats();
 
   useEffect(() => {
     try { setEmail(localStorage.getItem("tracer.session.email") || "analyst@razorpay.com"); } catch {}
