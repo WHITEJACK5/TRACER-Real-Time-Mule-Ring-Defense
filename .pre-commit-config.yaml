@@ -19,7 +19,9 @@ repos:
     rev: 1.7.9
     hooks:
       - id: bandit
-        args: [-r, app, -q]
+        # Scan staged backend files; gate on Medium+ (Low noise is asserts).
+        args: [-q, --severity-level, medium]
+        files: ^backend/
 
   # Secret scanning (spec 1.2): git-secrets / truffleHog alternative.
   - repo: https://github.com/gitleaks/gitleaks

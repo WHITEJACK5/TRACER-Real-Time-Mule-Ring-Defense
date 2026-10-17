@@ -5,7 +5,7 @@
 
 [![Backend](https://img.shields.io/badge/backend-FastAPI-009688?style=flat-square)](backend/app/main.py)
 [![Frontend](https://img.shields.io/badge/frontend-Next.js%2014-000000?style=flat-square)](frontend/app/layout.tsx)
-[![Tests](https://img.shields.io/badge/tests-154%20passed-brightgreen?style=flat-square)](#reproducible-numbers)
+[![Tests](https://img.shields.io/badge/tests-156%20passed-brightgreen?style=flat-square)](#reproducible-numbers)
 [![Build](https://img.shields.io/badge/build-14%2F14%20static-brightgreen?style=flat-square)](#quickstart)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
 [![Design](https://img.shields.io/badge/design-tokens-ff69b4?style=flat-square)](frontend/styles/globals.css)
@@ -216,7 +216,7 @@ NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000
 
 | Command | What it proves |
 |---|---|
-| `python -m pytest backend/tests -q` | `154` tests: bands, idempotent replay, HMAC, ring detection, negative control, injection, ledger tamper-evidence |
+| `python -m pytest backend/tests -q` | `156` tests: bands, idempotent replay, HMAC, ring detection, negative control, injection, ledger tamper-evidence |
 | `python data/generate_synthetic.py` | GBDT vs independent ground truth (nonlinear + confounder + 6.5% flip) |
 | `python scripts/bench_latency.py` | `p50/p95/p99` per-payment latency |
 | `curl localhost:8000/api/v1/model/report` | Live honest-metrics card |
@@ -289,7 +289,7 @@ This is a **hackathon prototype**, not production:
 npx tsc --noEmit          # EXIT 0 (GraphCanvas downlevelIteration fixed)
 npm run build             # 14/14 static
 npm run test              # 7 files 17 tests
-python -m pytest -q       # 154 passed
+python -m pytest -q       # 156 passed
 python scripts/bench_latency.py
 python data/generate_synthetic.py  # 0.095 AUPRC
 curl http://127.0.0.1:8000/healthz  # 200 ok

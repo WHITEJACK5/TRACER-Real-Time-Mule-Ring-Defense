@@ -156,7 +156,7 @@ _shap_lock = threading.Lock()
 
 
 def _shap_cached(score: int, feats: dict[str, float]) -> list[Any]:
-    key = f"{score}:{hashlib.md5(json.dumps(feats, sort_keys=True).encode()).hexdigest()}"
+    key = f"{score}:{hashlib.md5(json.dumps(feats, sort_keys=True).encode(), usedforsecurity=False).hexdigest()}"
     with _shap_lock:
         hit = _shap_cache.get(key)
         if hit is not None:
