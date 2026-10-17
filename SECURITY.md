@@ -40,6 +40,33 @@ All attacker-controlled strings (`vpa`, `email`, `notes`) are sanitized before a
 - Sliding window `5000/min` per IP, `20000/min` per merchant (configurable via `RATE_LIMIT_*`)
 - `X-Idempotency-Key` TTL `600` (Redis → in-memory fallback), `409` on `in_progress`, `X-Idempotent-Replay: true` on replay
 
+## Dependency Advisories (frontend)
+
+Current `npm audit` at submission: **0 critical, 7 high — all in dev/build-time
+toolchains, none in shipped runtime code.** The vitest/vite criticals were
+cleared by migrating to `vitest@5.0.5` (`vite@8`).
+
+The 7 highs share one root advisory:
+
+- `braces` (GHSA-vfj7-8cjw-p6xm) — stack-exhaustion DoS via deeply nested
+  glob patterns, reached through two chains:
+  1. `tailwindcss@3` → `chokidar`/`fast-glob`/`micromatch` → `braces`
+  2. `eslint-config-next` → `@next/eslint-plugin-next` → `fast-glob` →
+     `micromatch` → `braces`
+- `braces@3.0.3` is the latest published version — **no patched release
+  exists** upstream.
+
+Exposure: both packages are `devDependencies`. They never execute in the
+production bundle, and exploitation requires attacker-controlled glob patterns
+fed to the build/lint file watcher — not reachable from any untrusted input in
+this project.
+
+Why not fixed: the only automated path is `npm audit fix --force`, which
+installs `tailwindcss@4` (breaking config/content-scan migration). We chose an
+audited, verified 3.x build over a forced major migration under deadline;
+moving to Tailwind 4 is the tracked follow-up. `eslint` stays on the 9.x
+maintenance line (bumping to 10.x requires a plugin-capability review).
+
 ## Past Audits
 
 See `WIRING_AUDIT.md` (33/33 verified), `LIMITATIONS.md`, and `COST_MODEL.md` for honest disclosures.
