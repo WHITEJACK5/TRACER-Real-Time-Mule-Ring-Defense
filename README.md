@@ -57,7 +57,6 @@ The full set lives in [`docs/screenshots/`](docs/screenshots) (10 captures, incl
 - [Documentation](#-documentation)
 - [Demo & Media](#-demo--media)
 - [Project Structure](#-project-structure)
-- [Build Story](#-build-story)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -353,17 +352,6 @@ RPTracer/
 
 ---
 
-## 🧭 Build Story
-
-- **Day 1** — ring-detection prototype: device fan-out (≥ 4 identities) + household negative control
-- **Day 2** — graph isolation: `session_id` per burst so each run renders its own ring
-- **Day 3** — same-amount repeat detector: tolerance `max(±₹5, ±2%)`, MEDIUM 3rd / HIGH 4th in 1 h / 20 txns
-- **Day 4** — burst throughput: parallel `BATCH=6` lifting the demo to ~18 rps
-- **Day 5** — benchmarks + honest disclosure: latency numbers and GBDT 0%-recall surfaced in the UI
-- **Day 6** — media + hardening: versioned captures, audit fixes, CI green
-
----
-
 ## 🤝 Contributing
 
 Conventional commits · pre-commit hooks (`ruff`, `bandit` Medium+ gate) · CI must pass. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
@@ -374,4 +362,4 @@ MIT — see [LICENSE](LICENSE).
 
 ## 🙌 Credits
 
-Built for **Razorpay AI Buildathon 2026 · Track 2** by the TRACER team.
+Built for **Razorpay AI Buildathon 2026 · Track 2** by the WHITEJACK5{DEVIREDDY BHARADWAJA REDDY}
