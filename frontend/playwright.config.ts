@@ -6,6 +6,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   fullyParallel: true,
   retries: process.env.CI ? 2 : 1,
+  workers: process.env.CI ? 2 : 3,
   reporter: "list",
   use: {
     baseURL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",

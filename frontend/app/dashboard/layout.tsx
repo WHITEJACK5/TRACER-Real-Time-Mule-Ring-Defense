@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import Loader from "@/components/ui/Loader";
-import { useStoredValue } from "@/hooks/useStoredValue";
+import { useStoredValue, useHydrated } from "@/hooks/useStoredValue";
 
 const LINKS = [
   { href: "/dashboard", label: "Overview" },
@@ -23,13 +23,14 @@ const LINKS = [
  */
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const hydrated = useHydrated();
   const session = useStoredValue("tracer.session", "");
 
   useEffect(() => {
-    if (!session) router.replace("/login");
-  }, [session, router]);
+    if (hydrated && !session) router.replace("/login");
+  }, [hydrated, session, router]);
 
-  if (!session) {
+  if (!hydrated || !session) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg-primary">
         <Loader label="checking session…" />

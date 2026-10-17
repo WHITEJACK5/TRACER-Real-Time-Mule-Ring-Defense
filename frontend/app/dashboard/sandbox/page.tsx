@@ -215,13 +215,14 @@ export default function SandboxPage() {
           session_id: `ringseq_${base}`,
         },
       };
-      evaluate.mutate(payload, {
-        onSuccess: (data) => {
-          setResult(data.data);
+      evaluate
+        .mutateAsync(payload)
+        .then((res) => {
+          setResult(res.data);
           setRingProgress((p) => p + 1);
-          setHistory((prev) => [{ ts: Date.now(), r: data.data }, ...prev].slice(0, 20));
-        },
-      });
+          setHistory((prev) => [{ ts: Date.now(), r: res.data }, ...prev].slice(0, 20));
+        })
+        .catch(() => {});
       i++;
     }, 300);
     ringIntervalRef.current = interval;
