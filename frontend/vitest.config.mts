@@ -3,9 +3,6 @@ import path from "node:path";
 
 /** Vitest config - jsdom environment for component tests, `@/` path alias. */
 export default defineConfig({
-  esbuild: {
-    jsx: "automatic",
-  },
   test: {
     environment: "jsdom",
     globals: true,
@@ -14,7 +11,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "."),
+      "@": path.resolve(import.meta.dirname, "."),
     },
   },
 });
