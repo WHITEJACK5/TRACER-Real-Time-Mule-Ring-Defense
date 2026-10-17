@@ -145,6 +145,9 @@ cd frontend && npm install && npm run dev -- -H 0.0.0.0 -p 3000
 
 # Full stack
 docker compose up --build
+# Containers run with ENVIRONMENT=production + DOCS_ENABLED=false and the
+# dev-only default webhook secret from .env.example; override with
+# RAZORPAY_WEBHOOK_SECRET=<fresh >=32-char secret> for real deployments.
 ```
 
 **Default ports:** Backend `0.0.0.0:8000`, Frontend `0.0.0.0:3000` (both `0.0.0.0` for Chrome IPv4; `localhost` in browser works, `127.0.0.1` may not for frontend without `-H 0.0.0.0`).
@@ -161,7 +164,7 @@ DOCS_ENABLED=1
 REDIS_URL= # optional, falls back to in-memory
 NEO4J_URI= # optional, non-blocking mirror
 OPENAI_API_KEY= # optional, template fallback for dossiers
-RAZORPAY_WEBHOOK_SECRET= # optional, if unset responses report verified:false
+RAZORPAY_WEBHOOK_SECRET= # optional in development; MUST be >=32 chars when ENVIRONMENT=production
 REQUIRE_WEBHOOK_SECRET=0
 IDEMPOTENCY_TTL_SECONDS=600
 NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000

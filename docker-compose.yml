@@ -9,7 +9,9 @@ services:
       - NEO4J_URI=bolt://neo4j:7687
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET:-}
+      # Default is the documented dev-only placeholder (see .env.example);
+      # real deployments MUST override with a fresh >=32-char secret.
+      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET:-dev-only-insecure-secret-please-rotate-32ch}
       - REQUIRE_WEBHOOK_SECRET=${REQUIRE_WEBHOOK_SECRET:-0}
     depends_on: [redis, neo4j]
 
@@ -26,7 +28,7 @@ services:
   web:
     image: node:20-alpine
     working_dir: /app/frontend
-    command: sh -c "npm install && npm run build && npm run start -p 3000"
+    command: sh -c "npm install && npm run build && npx next start -p 3000"
     environment:
       - NEXT_PUBLIC_API_BASE=http://localhost:8000
     volumes: [".:/app"]

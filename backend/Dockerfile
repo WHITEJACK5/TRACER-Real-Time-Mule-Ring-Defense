@@ -12,10 +12,12 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # ---- Runtime stage: slim image with only what's needed ---------------------
 FROM python:3.11-slim AS runtime
 
+# Production posture: ENVIRONMENT=production makes the app fail fast at
+# import unless RAZORPAY_WEBHOOK_SECRET (>= 32 chars) is provided at runtime.
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    TRACER_ENVIRONMENT=production \
-    TRACER_DOCS_ENABLED=false
+    ENVIRONMENT=production \
+    DOCS_ENABLED=false
 
 # Bring in the installed packages from the builder.
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
