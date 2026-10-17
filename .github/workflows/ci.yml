@@ -17,7 +17,7 @@ jobs:
           cache: "pip"
           cache-dependency-path: backend/requirements.txt
       - name: Install
-        run: pip install -r backend/requirements.txt pytest
+        run: pip install -r backend/requirements.txt pytest hypothesis
       - name: Tests
         run: python -m pytest backend/tests -q
 
