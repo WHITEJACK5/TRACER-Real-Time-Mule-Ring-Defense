@@ -49,9 +49,39 @@ def test_state_is_o1_snapshot(tmp_path):
     for i in range(5):
         ledger.append("a", "b", float(i), refs={"event_id": f"e{i}"})
     state = ledger.state()
-    assert set(state) == {"intact", "entries", "head"}
+    assert set(state) == {"intact", "entries", "head", "multi_writer"}
     assert state["entries"] == 10
     assert len(state["head"]) == 16
+    assert state["multi_writer"] is False
+
+
+def test_external_writer_is_detected_and_resynced(tmp_path):
+    """A second in-process writer must not fork the on-disk chain."""
+    path = tmp_path / "ledger.jsonl"
+    writer_a = AuditLedger(path)
+    writer_b = AuditLedger(path)  # both boot from the empty file
+    writer_a.append("a", "b", 10.0, refs={"event_id": "ext_1"})
+    writer_b.append("a", "b", 20.0, refs={"event_id": "ext_2"})
+    # writer_b noticed writer_a's append and adopted its tail as head
+    assert writer_b.state()["multi_writer"] is True
+    assert writer_b.state()["entries"] == 4  # re-counted after resync
+    # the file chain is linear end-to-end (no fork)
+    assert AuditLedger(path).verify_chain() is True
+
+
+def test_torn_line_is_flagged_and_writer_keeps_going(tmp_path):
+    """A partial trailing line (crash mid-write) is flagged, not fatal."""
+    path = tmp_path / "ledger.jsonl"
+    ledger = AuditLedger(path)
+    ledger.append("a", "b", 10.0, refs={"event_id": "ok_1"})
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write('{"side": "DEBIT", "partial')  # torn write: no newline, bad JSON
+    ledger.append("a", "b", 20.0, refs={"event_id": "after_torn"})
+    # integrity reflects the torn line, but the new entry was still chained
+    assert ledger.state()["intact"] is False
+    assert ledger.state()["multi_writer"] is True
+    recent = ledger.read_recent(limit=5)
+    assert recent[0]["event_id"] == "after_torn"
 
 
 def test_get_ledger_singleton_and_path_override(tmp_path):

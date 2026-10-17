@@ -13,6 +13,10 @@ Integrity model
 * Appends extend the in-memory head; each write updates entry count.
 * ``state()`` reports live integrity in O(1) - safe to call from /healthz.
 * ``verify_chain()`` remains available for explicit deep scans.
+* Single-writer by design (one uvicorn process). If another process appends
+  to the file anyway, ``append`` detects the size change, re-verifies and
+  adopts the new tail as head so the on-disk chain never forks; the anomaly
+  is recorded as ``multi_writer`` in :meth:`state` and can never be silent.
 
 The ledger is NEVER rewound (immutable audit invariant).
 """
@@ -40,6 +44,8 @@ class AuditLedger:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._prev_hash = "GENESIS"
         self._entries = 0
+        self._size = 0
+        self._multi_writer = False
         # full scan of any pre-existing file exactly once at construction
         self._boot_intact = self._load_and_verify()
 
@@ -68,6 +74,7 @@ class AuditLedger:
                 head = rec.get("hash", head)
                 self._entries += 1
         self._prev_hash = head
+        self._size = self.path.stat().st_size
         return ok
 
     def append(self, debit_account: str, credit_account: str,
@@ -79,6 +86,14 @@ class AuditLedger:
             {"side": "CREDIT", "account": credit_account, "amount": round(amount, 2), "ts_ms": ts, **refs},
         ]
         with _LOCK:
+            current = self.path.stat().st_size if self.path.exists() else 0
+            if current != self._size:
+                # Another writer appended behind our back (e.g. a second
+                # process). Adopt the on-disk tail as the new head so we never
+                # fork the chain, and record the anomaly (integrity is the
+                # AND of the previous state and a fresh full re-scan).
+                self._multi_writer = True
+                self._boot_intact = self._boot_intact and self._load_and_verify()
             head = self._prev_hash
             lines: list[str] = []
             for entry in entries:
@@ -90,6 +105,7 @@ class AuditLedger:
                 fh.write("\n".join(lines) + "\n")
             self._prev_hash = head
             self._entries += len(entries)
+            self._size = self.path.stat().st_size
         return head
 
     def state(self) -> dict[str, Any]:
@@ -98,6 +114,7 @@ class AuditLedger:
             "intact": self._boot_intact,
             "entries": self._entries,
             "head": self._prev_hash[:16],
+            "multi_writer": self._multi_writer,
         }
 
     def verify_chain(self) -> bool:

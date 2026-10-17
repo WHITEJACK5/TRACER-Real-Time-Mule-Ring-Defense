@@ -13,7 +13,16 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 @pytest.fixture(scope="session")
-def client() -> TestClient:
+def client(tmp_path_factory) -> TestClient:
+    # Isolate the audit ledger: the app lifespan appends to whatever
+    # ledger_service.LEDGER_PATH points at, and tests must never write into
+    # the live demo ledger (data/ledger.jsonl) — concurrent writers fork the
+    # hash chain. Redirect to a session-scoped temp file before app creation.
+    from backend.app.services import ledger_service
+
+    ledger_service.LEDGER_PATH = tmp_path_factory.mktemp("test_ledger") / "ledger.jsonl"
+    ledger_service._ledger = None
+
     from backend.main import create_app
 
     with TestClient(create_app()) as c:
