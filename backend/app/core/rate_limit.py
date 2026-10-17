@@ -2,8 +2,9 @@
 
 In-memory, single-process by design. Production horizontal scaling would front
 this with Redis; the engine degrades gracefully and still enforces a local
-ceiling when Redis is unavailable. Defaults: 100 req/min per IP, 1000/min
-per merchant (configurable via ``TRACER_RATE_LIMIT_*`` env vars).
+ceiling when Redis is unavailable. Defaults: 5000 req/min per IP, 20000/min
+per merchant (configurable via ``RATE_LIMIT_IP_PER_MIN`` and
+``RATE_LIMIT_MERCHANT_PER_MIN`` env vars).
 
 On exceed the endpoint returns 429 with a ``Retry-After`` header.
 """

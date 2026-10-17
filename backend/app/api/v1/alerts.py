@@ -8,12 +8,13 @@ from __future__ import annotations
 import asyncio
 import json
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from backend.app.core.events import recent_alerts, subscribe, unsubscribe
+from backend.app.core.rate_limit import rate_limit
 
-router = APIRouter(prefix="/api/v1", tags=["realtime"])
+router = APIRouter(prefix="/api/v1", tags=["realtime"], dependencies=[Depends(rate_limit)])
 
 
 @router.get("/alerts")

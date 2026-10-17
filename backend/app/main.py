@@ -8,7 +8,6 @@ security headers, RFC 7807 error envelope, CORS allow-list, optional docs).
 from __future__ import annotations
 
 import asyncio
-import time
 import traceback
 from contextlib import asynccontextmanager
 from typing import Any
@@ -150,13 +149,6 @@ def create_app() -> FastAPI:
     def metrics():
         body, ctype = render_metrics()
         return PlainTextResponse(body, media_type=ctype)
-
-    # --- Sandbox latency probe (dashboard SLA badge) ------------------------
-    @app.post("/api/v1/sandbox/smoke")
-    async def smoke(event: TransactionEvent):
-        t0 = time.perf_counter()
-        await run_pipeline(event)
-        return {"roundtrip_ms": round((time.perf_counter() - t0) * 1000, 2)}
 
     # --- RFC 7807 global exception envelope --------------------------------
     @app.exception_handler(StarletteHTTPException)
