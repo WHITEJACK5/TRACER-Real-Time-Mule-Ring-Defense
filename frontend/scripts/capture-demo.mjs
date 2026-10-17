@@ -41,8 +41,25 @@ console.log("Pass 1: screenshots ->", SHOTS);
   await page.waitForTimeout(3000);
   await shot("03-overview.png");
 
+  await page.goto(`${BASE}/dashboard/sandbox`);
+  await page.locator("button").filter({ hasText: "Mule Ring (5 txns)" }).click();
+  await page.getByText(/\[MODEL\] risk_score=/).waitFor({ timeout: 20000 });
+  await page.waitForTimeout(1600);
+  await shot("07-sandbox-result.png");
+
+  // Build the 5-ring live before the graph capture so the canvas renders the
+  // ring as structure (fan-out hub + flagged mule nodes), not a single event.
+  await page.locator("button").filter({ hasText: "Fire 5-Ring Sequence" }).click();
+  await page.getByText("Ring complete").waitFor({ timeout: 30000 });
+  await page.waitForTimeout(1500);
+
   await page.goto(`${BASE}/dashboard/graph`);
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(2500);
+  await page.getByPlaceholder("Override live center — or leave blank").fill("DEV-MULE-RING-01");
+  await page.getByRole("button", { name: "Re-center" }).click();
+  await page.waitForTimeout(2000);
+  await page.getByRole("button", { name: "Zoom in" }).click();
+  await page.waitForTimeout(800);
   await shot("04-graph.png");
 
   await page.goto(`${BASE}/dashboard/ledger`);
@@ -52,12 +69,6 @@ console.log("Pass 1: screenshots ->", SHOTS);
   await page.goto(`${BASE}/dashboard/transactions`);
   await page.waitForTimeout(2000);
   await shot("06-transactions.png");
-
-  await page.goto(`${BASE}/dashboard/sandbox`);
-  await page.locator("button").filter({ hasText: "Mule Ring (5 txns)" }).click();
-  await page.getByText(/\[MODEL\] risk_score=/).waitFor({ timeout: 20000 });
-  await page.waitForTimeout(1600);
-  await shot("07-sandbox-result.png");
 
   await page.goto(`${BASE}/dashboard/settings`);
   await page.waitForTimeout(1500);
@@ -103,15 +114,15 @@ await page.getByRole("button", { name: "Sign in" }).click();
 await page.waitForURL("**/dashboard", { timeout: 30000 });
 await pause(4000);
 
+await page.locator('a[href="/dashboard/sandbox"]').first().click();
+await pause(1500);
+await page.locator("button").filter({ hasText: "Fire 5-Ring Sequence" }).click();
+await page.getByText("Ring complete").waitFor({ timeout: 30000 });
+await pause(3500);
 await page.locator('a[href="/dashboard/graph"]').first().click();
 await pause(4500);
 await page.locator('a[href="/dashboard/ledger"]').first().click();
 await pause(3500);
-await page.locator('a[href="/dashboard/sandbox"]').first().click();
-await pause(1500);
-await page.locator("button").filter({ hasText: "Mule Ring (5 txns)" }).click();
-await page.getByText(/\[MODEL\] risk_score=/).waitFor({ timeout: 20000 });
-await pause(5000);
 await page.locator('a[href="/dashboard"]').first().click();
 await pause(3000);
 
