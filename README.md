@@ -363,3 +363,6 @@ MIT — see [LICENSE](LICENSE).
 ## 🙌 Credits
 
 Built for **Razorpay AI Buildathon 2026 · Track 2** by the WHITEJACK5{DEVIREDDY BHARADWAJA REDDY}
+
+
+6UAJ5Q
